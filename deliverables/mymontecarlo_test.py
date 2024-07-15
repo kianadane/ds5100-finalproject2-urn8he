@@ -37,7 +37,8 @@ class TestGame(unittest.TestCase):
 
     def setUp(self):
         self.dice = [Die(np.array([1,2,3,4,5,6])) for i in range(3)]
-        self.game = Game(self.dice)
+        self.game = Game(self.dice, 5)
+        self.num_rolls = 5
 
     def test_play(self):
         self.game.play(5)
@@ -60,7 +61,7 @@ class TestAnalyzer(unittest.TestCase):
     def setUp(self):
         faces = np.array([1,2,3,4,5,6])
         dice = [Die(faces), Die(faces)]
-        self.game = Game(dice)
+        self.game = Game(dice, 5)
         self.analyzer = Analyzer(self.game)
     
     def test_combo_count(self):

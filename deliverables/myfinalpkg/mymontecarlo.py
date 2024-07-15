@@ -3,10 +3,12 @@ import pandas as pd
 import numpy as np
 
 class Die:
-    """This class may look threatening, but it's just an n-sided die. 
-    How many faces does it have? N. What are the weights of those faces? W."""
+    """
+    This class may look threatening, but it's just an n-sided die. 
+    How many faces does it have? N. What are the weights of those faces? W.
+    """
     
-    def __init__(self, faces):
+    def __init__(self, faces, weights=None):
         """ Number of faces on the die. Just count them. You can do it. 
         Pass a list of unique strings or integers as faces."""
         
@@ -17,7 +19,8 @@ class Die:
         if len(faces) != len(set(faces)):
             raise ValueError("Faces must be distinct. I know, I know, it's a lot to ask.")
         self.faces = faces
-        self.weights = np.ones(len(faces)) / len(faces)
+        weights = np.ones(len(faces)) / len(faces)
+        self.weights = weights
         self.__die_hard = pd.DataFrame({'weights': self.weights}, index=faces)
         
     
@@ -54,7 +57,7 @@ class Game:
         dice (list): A list of Die objects.
         results (list): The results of the most recent play."""
 
-    def __init__(self, dice):
+    def __init__(self, dice, num_rolls):
         """This is the constructor for Game class. It initializes the dice and results attributes.
         Parameters:
             similar dice (list): A list of Die objects.
@@ -63,6 +66,7 @@ class Game:
             raise TypeError("All dice must be Die objects. Last one, I promise :)")
         self.dice = dice
         self.results = None
+        self.num_rolls = num_rolls
         
 
     def play(self, num_rolls):
