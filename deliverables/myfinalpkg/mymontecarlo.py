@@ -11,17 +11,28 @@ class Die:
     def __init__(self, faces, weights=None):
         """ Number of faces on the die. Just count them. You can do it. 
         Pass a list of unique strings or integers as faces."""
+        try:
+            self.faces = faces
+        except: 
+            if not isinstance(faces, np.ndarray):
+                raise(TypeError("Faces must be a numpy array."))
+        try:
+            self.faces = faces
+        except: 
+            if faces.dtype not in [int, float, str]:
+                raise(TypeError("Faces must be strings, integers, or floats."))
+        try:
+            self.faces = faces
+        except: 
+            if len(faces) != len(set(faces)):
+                raise ValueError("Faces must be distinct.")
         
-        if not isinstance(faces, np.ndarray):
-            raise TypeError("Faces must be a numpy array. Didn't I mention that?")        
-        if faces.dtype not in [int, float, str]:
-            raise TypeError("Faces must be strings or integers. Okay, that one I *know* I told you about.")
-        if len(faces) != len(set(faces)):
-            raise ValueError("Faces must be distinct. I know, I know, it's a lot to ask.")
         self.faces = faces
-        weights = np.ones(len(faces)) / len(faces)
         self.weights = weights
-        self.__die_hard = pd.DataFrame({'weights': self.weights}, index=faces)
+        self.__die_hard = pd.DataFrame({'weights': self.weights}, index=self.faces)
+        
+    def normalize_weights(self):
+            self.__die_hard['weights'] /= self.__die_hard['weights'].sum()
         
     
     def change_weight(self, face_to_change, new_weight):
@@ -37,6 +48,8 @@ class Die:
         except ValueError:
             raise TypeError("Weight must be numeric.")
         self.__die_hard.at[face_to_change, 'weights'] = new_weight
+        self.__die_hard['weights'] /= self.__die_hard['weights'].sum()
+        return self.__die_hard
         
 
     def roll(self, num_rolls=1):
@@ -62,9 +75,9 @@ class Game:
         Parameters:
             similar dice (list): A list of Die objects.
         """
-        if not all(isinstance(d, Die) for d in dice):
-            raise TypeError("All dice must be Die objects. Last one, I promise :)")
         self.dice = dice
+        if not all(isinstance(d, Die) for d in self.dice):
+            raise TypeError("All dice must be Die objects. Last one, I promise :)")
         self.results = None
         self.num_rolls = num_rolls
         
@@ -97,11 +110,6 @@ class Analyzer:
     def __init__(self, game):
         """The constructor for Analyzer class. Do not destroy."""
         self.game = game
-    
-    def face_counts_per_roll(self):
-        results = self.game.show_results()
-        face_counts = pd.DataFrame(results).apply(pd.Series.value_counts, axis=1).fillna(0).astype(int)
-        return face_counts
         
     def jackpot(self):
         """The function to compute the number of jackpots in the game.
@@ -122,7 +130,7 @@ class Analyzer:
             and each cell contains the count of that face in that roll. """
         results = self.game.show_results()
         face_counts = [pd.Series(result).value_counts() for result in results]
-        results_df = pd.DataFrame(face_counts).fillna(0)
+        face_counts = pd.DataFrame(face_counts).fillna(0)
     
     def combo_count(self):
         """
@@ -144,7 +152,7 @@ class Analyzer:
             DataFrame: A DataFrame with a MultiIndex of distinct permutations and a column for the associated counts.
         """
         results = self.game.show_results()
-        permutations = pd.Series(tuple(result) for result in results).value_counts().to_frame()
+        permutations = pd.Series(tuple(result) for result in results).value_counts().to_frame(name='counts')
         return permutations
     
     
